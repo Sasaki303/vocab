@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="light">
+<title>英単語帳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light;
+    --paper:#F8F3E7;
+    --paper-tint:#ECE2C4;
+    --ink:#18150F;
+    --ink-mute:#5E5540;
+    --rule:#C9BB98;
+    --navy:#1F3B57;
+    --ochre:#8C6A2F;
+    --teal:#3F5F57;
+    --red:#A0331F;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    margin:0; padding:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Source Serif 4", "Shippori Mincho", serif;
+    font-variant-numeric:tabular-nums;
+    -webkit-font-smoothing:antialiased;
+  }
+  .jp{ font-family:"Shippori Mincho", serif; }
+  .wrap{
+    max-width:480px; margin:0 auto;
+    padding:38px 22px 52px;
+    min-height:100vh;
+    display:flex; flex-direction:column;
+  }
+
+  /* ===== 共通ヘッダー ===== */
+  .wordmark{
+    font-family:"Shippori Mincho", serif;
+    font-size:23px; font-weight:600;
+    letter-spacing:.04em;
+    margin:0 0 32px;
+    padding-bottom:15px;
+    border-bottom:1.5px solid var(--ink);
+  }
+
+  /* ===== ホーム ===== */
+  #screenHome{ display:flex; flex-direction:column; }
+  .set-row{
+    display:flex; align-items:baseline; justify-content:space-between;
+    gap:16px;
+    padding:26px 2px;
+    border-bottom:1px solid var(--rule);
+    background:var(--paper); border-top:none; border-left:none; border-right:none;
+    width:100%; text-align:left; cursor:pointer;
+    font-family:inherit; color:inherit;
+  }
+  .set-row:active{ background:var(--paper-tint); }
+  .set-row.disabled{ cursor:default; }
+  .set-row.disabled:active{ background:var(--paper); }
+  .set-left{ display:flex; align-items:baseline; gap:12px; }
+  .set-tag{
+    font-family:"Shippori Mincho", serif;
+    font-size:13px; font-weight:600; letter-spacing:.05em;
+    color:#fff; padding:4px 9px;
+    white-space:nowrap;
+  }
+  .tag-1{ background:var(--navy); }
+  .tag-2{ background:var(--ochre); }
+  .tag-3{ background:var(--teal); }
+  .set-name{ display:flex; flex-direction:column; gap:5px; }
+  .set-title{ font-size:20px; font-weight:600; }
+  .set-range{ font-size:14px; color:var(--ink-mute); }
+  .set-meta{
+    font-size:16px; color:var(--ink-mute);
+    text-align:right; white-space:nowrap;
+    font-weight:600;
+  }
+  .set-meta .n{ color:var(--red); }
+  .set-row.disabled .set-title,
+  .set-row.disabled .set-range,
+  .set-row.disabled .set-meta{ color:var(--ink-mute); }
+
+  /* ===== 学習画面 ===== */
+  #screenStudy{ display:none; flex-direction:column; flex:1; }
+  .study-top{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:26px;
+  }
+  .back-link{
+    background:var(--paper); border:none; cursor:pointer;
+    font-family:"Shippori Mincho", serif;
+    font-size:16px; color:var(--ink);
+    padding:6px 4px;
+    margin-left:-4px;
+  }
+  .study-label{ font-size:13.5px; color:var(--ink-mute); text-align:right; }
+
+  .tabs{
+    display:flex; gap:26px;
+    margin-bottom:20px;
+  }
+  .tab-btn{
+    background:var(--paper); border:none; cursor:pointer;
+    font-family:"Shippori Mincho", serif;
+    font-size:16px; color:var(--ink-mute);
+    padding:6px 0 10px;
+    border-bottom:2.5px solid transparent;
+  }
+  .tab-btn.active{ color:var(--ink); border-bottom-color:var(--red); }
+
+  .filter-row{
+    display:flex; justify-content:flex-end;
+    margin-bottom:16px;
+  }
+  .filter-link{
+    background:var(--paper); border:none; cursor:pointer;
+    font-family:"Shippori Mincho", serif;
+    font-size:14px; color:var(--ink-mute);
+    padding:6px 0; border-bottom:1px solid var(--rule);
+  }
+  .filter-link.active{ color:var(--red); border-bottom-color:var(--red); }
+
+  /* カード */
+  .card{
+    position:relative;
+    background:var(--paper);
+    border:1.5px solid var(--ink);
+    box-shadow:5px 5px 0 rgba(24,21,15,0.15);
+    padding:32px 26px 26px;
+    min-height:250px;
+    display:flex; flex-direction:column;
+    justify-content:center; align-items:center;
+    text-align:center;
+    cursor:pointer; user-select:none;
+  }
+  .card-top{
+    position:absolute; top:18px; left:20px; right:18px;
+    display:flex; justify-content:space-between; align-items:flex-start;
+  }
+  .no-badge{ font-size:14px; color:var(--ink-mute); font-weight:600; }
+  .set-badge{ font-size:12.5px; color:var(--ink-mute); }
+
+  .check-box{
+    width:26px; height:26px;
+    border:1.6px solid var(--ink-mute);
+    background:var(--paper); cursor:pointer;
+    padding:0; position:relative;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .check-box.on{ border-color:var(--red); }
+  .check-box svg{ display:none; width:15px; height:15px; }
+  .check-box.on svg{ display:block; }
+  .check-box svg path{ stroke:var(--red); }
+
+  .front-text{
+    font-size:34px; font-weight:600; line-height:1.35;
+    word-break:break-word; margin-top:16px;
+  }
+  .front-text.ja{ font-family:"Shippori Mincho", serif; font-size:25px; font-weight:500; }
+
+  .answer{
+    margin-top:22px; padding-top:20px;
+    border-top:1px dashed var(--rule);
+    width:100%;
+    font-family:"Shippori Mincho", serif;
+    font-size:20px; font-weight:500;
+    color:var(--red);
+    line-height:1.75;
+    word-break:break-word;
+    max-height:0; overflow:hidden; opacity:0;
+    transition:max-height .22s ease, opacity .22s ease;
+  }
+  .answer.show{ max-height:320px; opacity:1; }
+  .answer.en{ font-family:"Source Serif 4", serif; font-size:25px; font-weight:600; }
+
+  .tap-hint{
+    margin-top:20px; font-size:13px; color:var(--ink-mute);
+    font-family:"Shippori Mincho", serif;
+  }
+  .tap-hint.hide{ visibility:hidden; }
+
+  .empty-msg{
+    font-family:"Shippori Mincho", serif;
+    font-size:16px; color:var(--ink-mute); line-height:2;
+  }
+
+  .pos{
+    text-align:center; font-size:14px; color:var(--ink-mute);
+    margin:20px 0 18px; font-weight:600;
+  }
+
+  .nav{ display:flex; gap:10px; margin-bottom:16px; }
+  .nav-btn{
+    flex:1; padding:17px 6px;
+    font-family:"Shippori Mincho", serif;
+    font-size:16px; font-weight:600;
+    color:var(--ink);
+    border:1.6px solid var(--ink);
+    background:var(--paper);
+    cursor:pointer;
+  }
+  .nav-btn:active{ background:var(--ink); color:var(--paper); }
+  .nav-btn:disabled{ color:var(--ink-mute); border-color:var(--rule); background:var(--paper); }
+
+  .shuffle-btn{
+    padding:13px 6px; width:100%;
+    font-family:"Shippori Mincho", serif;
+    font-size:14px; color:var(--ink-mute);
+    border:1.3px solid var(--rule);
+    background:var(--paper); cursor:pointer;
+  }
+  .shuffle-btn.active{ color:var(--ink); border-color:var(--ink); }
+  .shuffle-btn:disabled{ color:var(--rule); cursor:default; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== ホーム画面 ===== -->
+  <div id="screenHome">
+    <p class="wordmark">英単語帳</p>
+
+    <button class="set-row" id="btnPrev">
+      <span class="set-left">
+        <span class="set-tag tag-1">4</span>
+        <span class="set-name">
+          <span class="set-title">Section 4</span>
+          <span class="set-range">401–440</span>
+        </span>
+      </span>
+      <span class="set-meta"><span class="n" id="prevStarCount">0</span> / <span id="prevCount">40</span></span>
+    </button>
+
+    <button class="set-row" id="btnNew">
+      <span class="set-left">
+        <span class="set-tag tag-2">5</span>
+        <span class="set-name">
+          <span class="set-title">Section 5</span>
+          <span class="set-range">441–500</span>
+        </span>
+      </span>
+      <span class="set-meta"><span class="n" id="newStarCount">0</span> / <span id="newCount">60</span></span>
+    </button>
+
+    <button class="set-row" id="btnReview">
+      <span class="set-left">
+        <span class="set-tag tag-3">✓</span>
+        <span class="set-name">
+          <span class="set-title">要復習</span>
+          <span class="set-range">Section 4 + 5</span>
+        </span>
+      </span>
+      <span class="set-meta"><span id="reviewCount">0</span></span>
+    </button>
+  </div>
+
+  <!-- ===== 学習画面 ===== -->
+  <div id="screenStudy">
+    <div class="study-top">
+      <button class="back-link" id="backBtn">← 戻る</button>
+      <span class="study-label" id="studyLabel">Section 4 ・ 401–440</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="modeEJ">英 → 日</button>
+      <button class="tab-btn" id="modeJE">日 → 英</button>
+    </div>
+
+    <div class="filter-row" id="filterRow">
+      <button class="filter-link" id="filterBtn">要復習のみ</button>
+    </div>
+
+    <div class="card" id="card">
+      <div class="card-top">
+        <span class="no-badge" id="noBadge">441</span>
+        <span class="set-badge" id="setBadge" style="display:none;">Section 4</span>
+        <button class="check-box" id="checkBtn" aria-label="要復習にする">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M4 10.5L8 14.5L16 5.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="front-text" id="frontText">comment</div>
+      <div class="answer" id="answerText"></div>
+      <div class="tap-hint" id="tapHint">タップで意味を表示</div>
+    </div>
+
+    <div class="pos" id="pos">1 / 60</div>
+
+    <div class="nav">
+      <button class="nav-btn" id="prevBtn">前へ</button>
+      <button class="nav-btn" id="nextBtn">次へ</button>
+    </div>
+    <button class="shuffle-btn" id="shuffleBtn">シャッフル</button>
+  </div>
+
+</div>
+
+<script>
+  /* ============ 単語データ ============ */
+  const WORDS_PREV = [
+    { no:401, en:"demonstrate", ja:"を論証[証明]する；デモをする" },
+    { no:402, en:"behave", ja:"振る舞う；作動する" },
+    { no:403, en:"educate", ja:"を教育する；に教える" },
+    { no:404, en:"purchase", ja:"を購入する" },
+    { no:405, en:"recommend", ja:"を勧める" },
+    { no:406, en:"admit", ja:"(を)(しぶしぶ)認める" },
+    { no:407, en:"generate", ja:"を生み出す；(電気など)を発生させる" },
+    { no:408, en:"explore", ja:"(を)調査[探究]する；(を)探検する" },
+    { no:409, en:"amaze", ja:"をびっくりさせる" },
+    { no:410, en:"tear", ja:"を引き裂く；裂ける" },
+    { no:411, en:"settle", ja:"を解決する；(に)移り住む；を落ち着かせる" },
+    { no:412, en:"afford", ja:"を持つ[する]余裕がある；を与える" },
+    { no:413, en:"conclude", ja:"と結論づける；を締めくくる" },
+    { no:414, en:"advertise", ja:"を宣伝する；広告を出す" },
+    { no:415, en:"encounter", ja:"に遭遇する；に(思いがけず)出会う" },
+    { no:416, en:"remind", ja:"に思い出させる" },
+    { no:417, en:"locate", ja:"〔受身形で〕位置する；の位置を探し当てる" },
+    { no:418, en:"aid", ja:"を援助する，助ける" },
+    { no:419, en:"bite", ja:"(を)かむ，(に)かみつく；(を)刺す" },
+    { no:420, en:"deliver", ja:"を配達する；(演説・講義)をする；子を産む" },
+    { no:421, en:"perceive", ja:"に気づく；を知覚する；を理解する" },
+    { no:422, en:"distinguish", ja:"を区別する" },
+    { no:423, en:"imply", ja:"を暗に意味する；を必然的に伴う" },
+    { no:424, en:"handle", ja:"を処理する，扱う；を論じる；を商う" },
+    { no:425, en:"praise", ja:"を賞賛する；賛美する" },
+    { no:426, en:"appeal", ja:"訴える；抗議する；(上級審に)上訴する" },
+    { no:427, en:"insist", ja:"(を)強く主張する；要求する" },
+    { no:428, en:"compete", ja:"競う；(に)匹敵する" },
+    { no:429, en:"rank", ja:"を位置づける，評価する；(ある地位に)位置する" },
+    { no:430, en:"deny", ja:"を否定する；を拒む" },
+    { no:431, en:"reject", ja:"を拒否する" },
+    { no:432, en:"intend", ja:"を意図する" },
+    { no:433, en:"expose", ja:"をさらす；を暴露する；を露出する" },
+    { no:434, en:"favor", ja:"に賛成する；を好む；をひいきする" },
+    { no:435, en:"inspire", ja:"(人)を奮起させる；を喚起する" },
+    { no:436, en:"propose", ja:"を提案する；をもくろむ；結婚を申し込む" },
+    { no:437, en:"spell", ja:"(語)をつづる；という語になる" },
+    { no:438, en:"breathe", ja:"呼吸する；を吸う" },
+    { no:439, en:"repair", ja:"を修理する；を修復する" },
+    { no:440, en:"consist", ja:"(~から)成る(of)；(~に)ある(in)" }
+  ].map(w => Object.assign(w, { set:"prev" }));
+
+  const WORDS_NEW = [
+    { no:441, en:"comment", ja:"意見，コメント；批判" },
+    { no:442, en:"instruction", ja:"(通例~s)指示；(~s)(製品の)使用書" },
+    { no:443, en:"religion", ja:"宗教；信条；信仰(心)" },
+    { no:444, en:"neighborhood", ja:"地域；近所" },
+    { no:445, en:"laboratory", ja:"実験室，研究室" },
+    { no:446, en:"presence", ja:"存在；出席；面前" },
+    { no:447, en:"confidence", ja:"自信；信頼；秘密" },
+    { no:448, en:"harm", ja:"害，損害" },
+    { no:449, en:"instrument", ja:"器具；楽器(≒musical instrument)" },
+    { no:450, en:"category", ja:"部類，区分；範疇" },
+    { no:451, en:"capital", ja:"資本；首都；大文字(≒capital letter)" },
+    { no:452, en:"outcome", ja:"結果(≒result)；成果" },
+    { no:453, en:"notion", ja:"概念，観念；見解；意向" },
+    { no:454, en:"review", ja:"(書物などの)論評；再調査；復習" },
+    { no:455, en:"trait", ja:"特性(≒feature)" },
+    { no:456, en:"diversity", ja:"多様性；相違点" },
+    { no:457, en:"victim", ja:"犠牲(者)，被害者" },
+    { no:458, en:"occasion", ja:"場合，時；行事；機会" },
+    { no:459, en:"facility", ja:"施設，設備；機能；才能" },
+    { no:460, en:"stock", ja:"在庫品；蓄え；株" },
+    { no:461, en:"conference", ja:"会議；協議" },
+    { no:462, en:"humanity", ja:"人類；人間性；人情；(the ~ties)" },
+    { no:463, en:"dialect", ja:"方言" },
+    { no:464, en:"proportion", ja:"割合；部分；釣り合い" },
+    { no:465, en:"tip", ja:"助言，秘訣；チップ；先端" },
+    { no:466, en:"lawyer", ja:"弁護士" },
+    { no:467, en:"stuff", ja:"(漠然と)物；素材；素質" },
+    { no:468, en:"comfort", ja:"快適さ；慰め" },
+    { no:469, en:"philosophy", ja:"哲学；原理；人生観" },
+    { no:470, en:"mammal", ja:"哺乳動物" },
+    { no:471, en:"quantity", ja:"量(⇔quality)；分量" },
+    { no:472, en:"landscape", ja:"風景；領域；状況" },
+    { no:473, en:"tribe", ja:"部族；仲間" },
+    { no:474, en:"organ", ja:"器官，臓器；組織；(パイプ)オルガン" },
+    { no:475, en:"trial", ja:"試み，(品質・性能などの)試験；試用期間" },
+    { no:476, en:"norm", ja:"規範；標準" },
+    { no:477, en:"code", ja:"規範；暗号；法典" },
+    { no:478, en:"substance", ja:"物質；実体；趣旨" },
+    { no:479, en:"multiple", ja:"多様な；種々雑多な" },
+    { no:480, en:"numerous", ja:"非常に数の多い" },
+    { no:481, en:"narrow", ja:"狭い；細い；限られた" },
+    { no:482, en:"widespread", ja:"広範囲にわたる；広く普及した" },
+    { no:483, en:"sufficient", ja:"(~に…するのに)十分な(for/to)" },
+    { no:484, en:"proper", ja:"適切な；正式の；(名詞の後で)主要な；固有の(to)" },
+    { no:485, en:"linguistic", ja:"言語の，言語学の" },
+    { no:486, en:"annual", ja:"年1回の，例年の；1年間の" },
+    { no:487, en:"contemporary", ja:"現代の；同時代の；同年輩の" },
+    { no:488, en:"contrary", ja:"(~と)反対の(to)" },
+    { no:489, en:"strict", ja:"(規則などが)厳しい；厳格な" },
+    { no:490, en:"civil", ja:"市民の；民間の；民事の(⇔criminal)" },
+    { no:491, en:"odd", ja:"奇妙な(≒strange)；奇数の" },
+    { no:492, en:"unknown", ja:"不明の；(~に)知られていない(to)；無名の" },
+    { no:493, en:"superior", ja:"よりすぐれた(⇔inferior)" },
+    { no:494, en:"sensitive", ja:"敏感な；神経質な；微妙な" },
+    { no:495, en:"violent", ja:"(人・気質などが)激しい；暴力的な" },
+    { no:496, en:"virtual", ja:"仮想の；事実上の" },
+    { no:497, en:"regardless", ja:"(~に)かまわない，無頓着な(of)" },
+    { no:498, en:"immediate", ja:"即座の；当面の；すぐそばの；直接の" },
+    { no:499, en:"crucial", ja:"重要な" },
+    { no:500, en:"somewhat", ja:"いくぶん，多少" }
+  ].map(w => Object.assign(w, { set:"new" }));
+
+  /* ============ 保存 ============ */
+  const STORAGE_KEY = "eitango_check_words_v3";
+  function loadChecks(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
+    catch(e){ return {}; }
+  }
+  let checks = loadChecks();
+  function saveChecks(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(checks)); }catch(e){}
+  }
+  function isChecked(no){ return !!checks[no]; }
+  function toggleCheck(no){
+    if(checks[no]) delete checks[no]; else checks[no] = true;
+    saveChecks();
+  }
+
+  /* ============ 要素 ============ */
+  const screenHome = document.getElementById("screenHome");
+  const screenStudy = document.getElementById("screenStudy");
+  const btnPrev = document.getElementById("btnPrev");
+  const btnNew = document.getElementById("btnNew");
+  const btnReview = document.getElementById("btnReview");
+  const prevCountEl = document.getElementById("prevCount");
+  const newCountEl = document.getElementById("newCount");
+  const prevStarCountEl = document.getElementById("prevStarCount");
+  const newStarCountEl = document.getElementById("newStarCount");
+  const reviewCountEl = document.getElementById("reviewCount");
+
+  const backBtn = document.getElementById("backBtn");
+  const studyLabel = document.getElementById("studyLabel");
+  const filterRow = document.getElementById("filterRow");
+  const filterBtn = document.getElementById("filterBtn");
+
+  const card = document.getElementById("card");
+  const noBadge = document.getElementById("noBadge");
+  const setBadge = document.getElementById("setBadge");
+  const checkBtn = document.getElementById("checkBtn");
+  const frontText = document.getElementById("frontText");
+  const answerText = document.getElementById("answerText");
+  const tapHint = document.getElementById("tapHint");
+  const pos = document.getElementById("pos");
+  const modeEJ = document.getElementById("modeEJ");
+  const modeJE = document.getElementById("modeJE");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const shuffleBtn = document.getElementById("shuffleBtn");
+
+  function renderHome(){
+    prevCountEl.textContent = WORDS_PREV.length;
+    newCountEl.textContent = WORDS_NEW.length;
+    const prevN = WORDS_PREV.filter(w => isChecked(w.no)).length;
+    const newN = WORDS_NEW.filter(w => isChecked(w.no)).length;
+    prevStarCountEl.textContent = prevN;
+    newStarCountEl.textContent = newN;
+    const total = prevN + newN;
+    reviewCountEl.textContent = total;
+    btnReview.classList.toggle("disabled", total === 0);
+  }
+
+  let source = "prev";
+  let baseList = [];
+  let list = [];
+  let order = [];
+  let cur = 0;
+  let mode = "EJ";
+  let flipped = false;
+  let shuffled = false;
+  let starOnly = false;
+
+  function buildList(){
+    if(source === "review"){
+      baseList = WORDS_PREV.concat(WORDS_NEW).filter(w => isChecked(w.no));
+      list = baseList;
+    } else {
+      baseList = source === "prev" ? WORDS_PREV : WORDS_NEW;
+      list = starOnly ? baseList.filter(w => isChecked(w.no)) : baseList;
+    }
+    order = list.map((_, i) => i);
+    if(shuffled) doShuffleOrder();
+    cur = 0;
+  }
+
+  function doShuffleOrder(){
+    for(let i = order.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+  }
+
+  function openStudy(src){
+    source = src;
+    shuffled = false;
+    starOnly = (src === "review");
+    shuffleBtn.classList.remove("active");
+    shuffleBtn.textContent = "シャッフル";
+    filterBtn.classList.remove("active");
+    filterBtn.textContent = "要復習のみ";
+
+    if(src === "prev") studyLabel.textContent = "Section 4 ・ 401–440";
+    else if(src === "new") studyLabel.textContent = "Section 5 ・ 441–500";
+    else studyLabel.textContent = "要復習";
+
+    filterRow.style.display = (src === "review") ? "none" : "flex";
+
+    buildList();
+    screenHome.style.display = "none";
+    screenStudy.style.display = "flex";
+    render();
+  }
+
+  function goHome(){
+    screenStudy.style.display = "none";
+    screenHome.style.display = "flex";
+    renderHome();
+  }
+
+  function currentWord(){
+    if(list.length === 0) return null;
+    return list[order[cur]];
+  }
+
+  function render(){
+    const w = currentWord();
+
+    if(!w){
+      noBadge.textContent = "";
+      setBadge.style.display = "none";
+      checkBtn.style.display = "none";
+      frontText.className = "front-text";
+      frontText.innerHTML = '<span class="empty-msg">まだ要復習の単語がありません。<br>カード右上のチェックで登録できます。</span>';
+      answerText.classList.remove("show");
+      tapHint.classList.add("hide");
+      pos.textContent = "0 / 0";
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      shuffleBtn.disabled = true;
+      return;
+    }
+
+    prevBtn.disabled = false;
+    nextBtn.disabled = false;
+    shuffleBtn.disabled = false;
+
+    noBadge.textContent = w.no;
+    if(source === "review"){
+      setBadge.style.display = "inline";
+      setBadge.textContent = w.set === "prev" ? "Section 4" : "Section 5";
+    } else {
+      setBadge.style.display = "none";
+    }
+    checkBtn.style.display = "block";
+    checkBtn.classList.toggle("on", isChecked(w.no));
+
+    if(mode === "EJ"){
+      frontText.className = "front-text";
+      frontText.textContent = w.en;
+      answerText.className = "answer jp";
+      answerText.textContent = w.ja;
+    } else {
+      frontText.className = "front-text ja";
+      frontText.textContent = w.ja;
+      answerText.className = "answer en";
+      answerText.textContent = w.en;
+    }
+    flipped = false;
+    answerText.classList.remove("show");
+    tapHint.classList.remove("hide");
+    pos.textContent = (cur + 1) + " / " + order.length;
+  }
+
+  function flip(){
+    if(!currentWord()) return;
+    flipped = !flipped;
+    if(flipped){
+      answerText.classList.add("show");
+      tapHint.classList.add("hide");
+    } else {
+      answerText.classList.remove("show");
+      tapHint.classList.remove("hide");
+    }
+  }
+
+  function next(){ if(order.length===0) return; cur = (cur+1)%order.length; render(); }
+  function prev(){ if(order.length===0) return; cur = (cur-1+order.length)%order.length; render(); }
+
+  function setMode(m){
+    mode = m;
+    modeEJ.classList.toggle("active", m === "EJ");
+    modeJE.classList.toggle("active", m === "JE");
+    render();
+  }
+
+  function toggleShuffle(){
+    if(order.length===0) return;
+    if(!shuffled){
+      doShuffleOrder();
+      shuffled = true;
+      shuffleBtn.classList.add("active");
+      shuffleBtn.textContent = "番号順に戻す";
+    } else {
+      order = list.map((_, i) => i);
+      shuffled = false;
+      shuffleBtn.classList.remove("active");
+      shuffleBtn.textContent = "シャッフル";
+    }
+    cur = 0;
+    render();
+  }
+
+  function toggleFilter(){
+    starOnly = !starOnly;
+    filterBtn.classList.toggle("active", starOnly);
+    shuffled = false;
+    shuffleBtn.classList.remove("active");
+    shuffleBtn.textContent = "シャッフル";
+    buildList();
+    render();
+  }
+
+  function onCheckClick(e){
+    e.stopPropagation();
+    const w = currentWord();
+    if(!w) return;
+    toggleCheck(w.no);
+    render();
+  }
+
+  btnPrev.addEventListener("click", () => openStudy("prev"));
+  btnNew.addEventListener("click", () => openStudy("new"));
+  btnReview.addEventListener("click", () => {
+    const total = WORDS_PREV.filter(w=>isChecked(w.no)).length + WORDS_NEW.filter(w=>isChecked(w.no)).length;
+    if(total === 0) return;
+    openStudy("review");
+  });
+  backBtn.addEventListener("click", goHome);
+
+  card.addEventListener("click", flip);
+  checkBtn.addEventListener("click", onCheckClick);
+  nextBtn.addEventListener("click", next);
+  prevBtn.addEventListener("click", prev);
+  modeEJ.addEventListener("click", () => setMode("EJ"));
+  modeJE.addEventListener("click", () => setMode("JE"));
+  shuffleBtn.addEventListener("click", toggleShuffle);
+  filterBtn.addEventListener("click", toggleFilter);
+
+  renderHome();
+</script>
+</body>
+</html>
